@@ -108,6 +108,7 @@
     "text_encoding": "cpp",
     "typeinfo": "cpp",
     "variant": "cpp",
-    "sstream": "cpp"
+    "sstream": "cpp",
+    "unordered_set": "cpp"
   }
 }

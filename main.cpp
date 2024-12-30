@@ -5,6 +5,37 @@
 #include <fstream>
 #include <vector>
 #include <sstream>
+#include <unordered_set>
+#include <iterator>
+#include <array>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <numeric>
+#include <cmath>
+#include <random>
+#include <chrono>
+#include <ctime>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <atomic>
+#include <future>
+#include <functional>
+#include <queue>
+#include <stack>
+#include <stdexcept>
+#include <cassert>
+#include <memory>
+#include <type_traits>
+#include <limits>
+#include <iomanip>
+#include <locale>
+#include <codecvt>
+#include <locale>
+#include <codecvt>
+#include <filesystem>
+#include <windows.h>
 std::vector<std::string> tokens;
 std::string fileContent;
 std::string processedFileContent;
@@ -16,6 +47,26 @@ int vocabSize;
 std::vector<long long> layer1Weights;
 std::vector<long long> layer1Biases;
 std::vector<long long> layer1Values;
+std::vector<long long> layer2Weights;
+std::vector<long long> layer2Biases;
+std::vector<long long> layer2Values;
+std::vector<long long> layer3Weights;
+std::vector<long long> layer3Biases;
+std::vector<long long> layer3Values;
+std::vector<long long> layer4Weights;
+std::vector<long long> layer4Biases;
+std::vector<long long> layer4Values;
+
+std::vector<int> tokenizedText; // Store prompt tokens as indicies
+void initializeWeights(std::vector<long long>& weights, long long minValue, long long maxValue) {
+    std::random_device rd;                     // Seed for randomness
+    std::mt19937 gen(rd());                    // Random number generator
+    std::uniform_int_distribution<long long> dis(minValue, maxValue); // Integer distribution in range [minValue, maxValue]
+
+    for (long long& weight : weights) {
+        weight = dis(gen); // Assign random integer value to each weight
+    }
+}
 
 int toLowercase(std::string &text)
 {
@@ -27,21 +78,28 @@ bool isPunctuation(char character)
     return std::find(std::begin(punctuation), std::end(punctuation), std::string(1, character).c_str()) != std::end(punctuation);
 }
 
+void clearPromptTokens()
+{
+    promptTokens.clear();
+    promptTokens.shrink_to_fit();
+}
+
 int preprocessText()
 {
-    std::cout << "Preprocessing text" <<std::endl;
+    std::cout << "Preprocessing text" << std::endl;
     processedFileContent = fileContent;
     toLowercase(processedFileContent);
-    
-    for (size_t i = 0; i < processedFileContent.size(); ++i) {
-        if (isPunctuation(processedFileContent[i])) {
+
+    for (size_t i = 0; i < processedFileContent.size(); ++i)
+    {
+        if (isPunctuation(processedFileContent[i]))
+        {
             processedFileContent.erase(i, 1);
             --i;
         }
     }
-    std::replace_if(processedFileContent.begin(), processedFileContent.end(), [](char c) {
-        return isPunctuation(c);
-    }, ' ');
+    std::replace_if(processedFileContent.begin(), processedFileContent.end(), [](char c)
+                    { return isPunctuation(c); }, ' ');
     std::cout << "Preprocessing completed." << std::endl;
     return 0;
 }
@@ -58,7 +116,6 @@ int tokenizeText()
     }
     size_t numSegments = tokens.size();
     std::cout << "Number of segments (Duplicates included): " << numSegments << std::endl;
-
     // Sort and remove duplicates
     std::sort(tokens.begin(), tokens.end());
     auto last = std::unique(tokens.begin(), tokens.end());
@@ -69,25 +126,50 @@ int tokenizeText()
 
     return 0;
 }
-void trimTokens() 
+void trimTokens()
 {
     tokens.erase(
-        std::remove_if(tokens.begin(), tokens.end(), [](const std::string& token) {
-            return token.empty();
-        }),
-        tokens.end()
-    );
+        std::remove_if(tokens.begin(), tokens.end(), [](const std::string &token)
+                       { return token.empty(); }),
+        tokens.end());
 }
 std::string printText(std::string textContent)
 {
     std::cout << textContent << std::endl;
     return textContent;
 }
+int segmentPrompt(const std::string& textContent)
+{
+    int countUnknown = 0;
+    std::cout << "Segmenting text" << std::endl;
+    std::istringstream inputStream(textContent);
+    std::string word;
+    while (inputStream >> word)
+    {
+        auto it = std::find(tokens.begin(), tokens.end(), word);
+        if (it != tokens.end())
+        {
+            size_t index = std::distance(tokens.begin(), it);
+            printText(tokens[index]);
+            printText("True.");
+            tokenizedText.push_back(index);
+        }
+        else
+        {
+            printText("False.");
+            countUnknown+=1;
+
+        }
+    }
+    std::cout << "Segmenting completed." << std::endl;
+    return countUnknown;
+}
+
 int runPrompt()
 {
     std::cout << "Please enter the prompt text: ";
     std::getline(std::cin, prompt);
-    std::cout << "Preprocessing prompt text" <<std::endl;
+    std::cout << "Preprocessing prompt text" << std::endl;
     toLowercase(prompt);
     printText(prompt);
     std::string newPrompt;
@@ -106,7 +188,6 @@ int runPrompt()
     printText(prompt);
     std::cout << "Preprocessing completed." << std::endl;
 
-
     std::cout << "Tokenizing prompt text" << std::endl;
 
     std::istringstream inputStream(prompt);
@@ -118,21 +199,32 @@ int runPrompt()
     size_t numSegments = promptTokens.size();
     std::cout << "Number of segments in prompt (Duplicates included): " << numSegments << std::endl;
 
-    // Sort and remove duplicates
-    std::sort(promptTokens.begin(), promptTokens.end());
-    auto last = std::unique(promptTokens.begin(), promptTokens.end());
-    promptTokens.erase(last, promptTokens.end());
+    // Remove duplicates while maintaining the original order
+    std::unordered_set<std::string> seen;
+    auto new_end = std::remove_if(promptTokens.begin(), promptTokens.end(), [&seen](const std::string &token)
+                                  {
+        if (seen.find(token) != seen.end()) {
+            return true;
+        } else {
+            seen.insert(token);
+            return false;
+        } });
+    promptTokens.erase(new_end, promptTokens.end());
     std::cout << "Tokenizing completed." << std::endl;
     promptTokens.erase(
-        std::remove_if(promptTokens.begin(), promptTokens.end(), [](const std::string& token) {
-            return token.empty();
-        }),
-        promptTokens.end()
-    );
+        std::remove_if(promptTokens.begin(), promptTokens.end(), [](const std::string &token)
+                       { return token.empty(); }),
+        promptTokens.end());
     for (size_t i = 0; i < promptTokens.size(); ++i)
-{
-    std::cout << "Prompt token Index: " << std::to_string(i) << " | " << promptTokens[i] << std::endl;
-}
+    {
+        std::cout << "Prompt token Index: " << std::to_string(i) << " | " << promptTokens[i] << std::endl;
+    }
+    segmentPrompt(prompt);
+    std::cout << "Prompt to tokens completed." << std::endl;
+    for (size_t j = 0; j < tokenizedText.size(); ++j)
+    {
+        std::cout << "Prompt to tokens Index: " << std::to_string(j) << " | " << tokenizedText[j] << std::endl;
+    }
     return 0;
 }
 
@@ -160,17 +252,11 @@ int main()
 
     tokenizeText();
     trimTokens();
-    fileContent.clear();  // Clear the content
-    fileContent.shrink_to_fit();  // Shrink the capacity to release allocated memory
-    std::cout << "fileContent has been unloaded from memory." << std::endl;
-    processedFileContent.clear();  // Clear the content
-    processedFileContent.shrink_to_fit();  // Shrink the capacity to release allocated memory
-    std::cout << "processedFileContent has been unloaded from memory." << std::endl;
 
     for (size_t i = 0; i < tokens.size(); ++i)
-{
-    std::cout << "Token Index: " << std::to_string(i) << " | " << tokens[i] << std::endl;
-}
+    {
+        std::cout << "Token Index: " << std::to_string(i) << " | " << tokens[i] << std::endl;
+    }
     size_t numSegments = tokens.size();
     std::cout << "Number of segments (No duplicates): " << numSegments << std::endl;
     vocabSize = numSegments; // Set the vocabulary size
