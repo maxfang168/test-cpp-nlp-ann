@@ -38,22 +38,18 @@ std::vector<std::string> tokens;
 std::string fileContent;
 std::string processedFileContent;
 std::string punctuation[34] = {".", ",", "!", "?", ";", ":", "(", ")", "-", "`", "'", "\"", "[", "]", "{", "}", "<", ">", "/", "\\", "_", "@", "=", "+", "*", "%", "^", "~", "#", "$", "&", "\n", "\t", "’"};
-std::string trainingFilePath = "C:\\Users\\RLS\\Documents\\GitHub\\test-cpp-nlp-ann\\data.txt";
+std::string trainingFilePath = "C:\\Users\\RLS\\Documents\\GitHub\\test-cpp-nlp-ann\\trainingData.txt";
 std::string prompt;
 std::vector<std::string> promptTokens;
 int vocabSize;
-std::vector<long long> layer1Weights;
-std::vector<long long> layer1Biases;
+/*std::vector<long long> inputWeights(vocabSize);
+std::vector<long long> inputBiases(vocabSize);
+std::vector<long long> layer1Weights(100);
+std::vector<long long> layer1Biases(100);
 std::vector<long long> layer1Values;
-std::vector<long long> layer2Weights;
-std::vector<long long> layer2Biases;
-std::vector<long long> layer2Values;
-std::vector<long long> layer3Weights;
-std::vector<long long> layer3Biases;
-std::vector<long long> layer3Values;
-std::vector<long long> layer4Weights;
-std::vector<long long> layer4Biases;
-std::vector<long long> layer4Values;
+std::vector<long long> outputBiases;
+std::vector<long long> outputValues;
+*/
 
 std::vector<int> tokenizedText; // Store prompt tokens as indicies
 void initializeWeights(std::vector<long long>& weights, long long minValue, long long maxValue) {
@@ -230,7 +226,7 @@ int main()
 {
     std::cout << "Main funct init." << std::endl;
     std::ifstream file(trainingFilePath); // Open the file
-
+    //initializeWeights();
     if (file.is_open())
     { // Check if the file is open
         std::string line;
@@ -259,6 +255,8 @@ int main()
     std::cout << "Number of segments (No duplicates): " << numSegments << std::endl;
     vocabSize = numSegments; // Set the vocabulary size
     std::cout << "Tokenizing completed." << std::endl;
+    while (true) {
     runPrompt();
+    }
     return 0;
 }
