@@ -1,39 +1,13 @@
 #include <iostream>
 #include <string>
-#include <algorithm>
-#include <cctype>
 #include <fstream>
 #include <vector>
 #include <sstream>
 #include <unordered_set>
-#include <iterator>
-#include <array>
-#include <set>
-#include <map>
-#include <numeric>
-#include <cmath>
 #include <random>
 #include <chrono>
-#include <ctime>
 #include <thread>
-#include <mutex>
-#include <condition_variable>
-#include <atomic>
-#include <future>
-#include <functional>
-#include <queue>
-#include <stack>
-#include <stdexcept>
-#include <cassert>
-#include <memory>
-#include <type_traits>
-#include <limits>
-#include <iomanip>
-#include <locale>
-#include <codecvt>
-#include <locale>
-#include <filesystem>
-#include <windows.h>
+#include <algorithm>
 std::vector<std::string> tokens;
 std::string fileContent;
 std::string processedFileContent;
@@ -49,7 +23,6 @@ std::vector<long long> layer1Biases(vocabSize);
 std::vector<long long> layer1Values;
 std::vector<long long> outputBiases;
 std::vector<long long> outputValues;
-
 std::vector<int> tokenizedText; // Store prompt tokens as indicies
 void initializeWeights(std::vector<long long>& weights, long long minValue, long long maxValue) {
     std::random_device rd;                     // Seed for randomness
@@ -76,7 +49,6 @@ void clearPromptTokens()
     promptTokens.clear();
     promptTokens.shrink_to_fit();
 }
-
 int preprocessText()
 {
     std::cout << "Preprocessing text" << std::endl;
