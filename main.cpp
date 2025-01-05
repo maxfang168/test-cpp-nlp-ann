@@ -18,6 +18,7 @@ std::vector<std::string> promptTokens;
 int vocabSize;
 std::vector<long long> inputWeights(vocabSize);
 std::vector<long long> inputBiases(vocabSize);
+std::vector<long long> inputValues(vocabSize);
 std::vector<long long> layer1Weights(vocabSize);
 std::vector<long long> layer1Biases(vocabSize);
 std::vector<long long> layer1Values;
@@ -131,8 +132,11 @@ int segmentPrompt(const std::string &textContent)
     return countUnknown;
 }
 
-int runANN(int contextIndex1, int contextIndex2, int contextIndex3, int con)
+int runANN(int contextIndex1)
 {
+    std::cout << "Running ANN" << std::endl;
+    layer1Values.clear();
+    outputValues.clear();
 
     return 0;
 }
