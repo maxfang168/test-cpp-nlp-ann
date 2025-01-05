@@ -24,12 +24,14 @@ std::vector<long long> layer1Values;
 std::vector<long long> outputBiases;
 std::vector<long long> outputValues;
 std::vector<int> tokenizedText; // Store prompt tokens as indicies
-void initializeWeights(std::vector<long long>& weights, long long minValue, long long maxValue) {
-    std::random_device rd;                     // Seed for randomness
-    std::mt19937 gen(rd());                    // Random number generator
+void initializeWeights(std::vector<long long> &weights, long long minValue, long long maxValue)
+{
+    std::random_device rd;                                            // Seed for randomness
+    std::mt19937 gen(rd());                                           // Random number generator
     std::uniform_int_distribution<long long> dis(minValue, maxValue); // Integer distribution in range [minValue, maxValue]
 
-    for (long long& weight : weights) {
+    for (long long &weight : weights)
+    {
         weight = dis(gen); // Assign random integer value to each weight
     }
 }
@@ -103,7 +105,7 @@ std::string printText(std::string textContent)
     std::cout << textContent << std::endl;
     return textContent;
 }
-int segmentPrompt(const std::string& textContent)
+int segmentPrompt(const std::string &textContent)
 {
     int countUnknown = 0;
     std::cout << "Segmenting text" << std::endl;
@@ -122,19 +124,19 @@ int segmentPrompt(const std::string& textContent)
         else
         {
             printText("False.");
-            countUnknown+=1;
-
+            countUnknown += 1;
         }
     }
     std::cout << "Segmenting completed." << std::endl;
     return countUnknown;
 }
 
-int runANN()
+int runANN(int contextIndex1, int contextIndex2, int contextIndex3, int con)
 {
-    
+
     return 0;
 }
+
 
 int runPrompt()
 {
@@ -203,7 +205,7 @@ int main()
 {
     std::cout << "Main funct init." << std::endl;
     std::ifstream file(trainingFilePath); // Open the file
-    //initializeWeights();
+    // initializeWeights();
     if (file.is_open())
     { // Check if the file is open
         std::string line;
@@ -232,8 +234,9 @@ int main()
     std::cout << "Number of segments (No duplicates): " << numSegments << std::endl;
     vocabSize = numSegments; // Set the vocabulary size
     std::cout << "Tokenizing completed." << std::endl;
-    while (true) {
-    runPrompt();
+    while (true)
+    {
+        runPrompt();
     }
     return 0;
 }
