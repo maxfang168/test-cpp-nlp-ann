@@ -110,5 +110,6 @@
     "variant": "cpp",
     "sstream": "cpp",
     "unordered_set": "cpp"
-  }
+  },
+  "files.autoSave": "afterDelay"
 }

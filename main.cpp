@@ -42,14 +42,13 @@ std::string trainingFilePath = "C:\\Users\\RLS\\Documents\\GitHub\\test-cpp-nlp-
 std::string prompt;
 std::vector<std::string> promptTokens;
 int vocabSize;
-/*std::vector<long long> inputWeights(vocabSize);
+std::vector<long long> inputWeights(vocabSize);
 std::vector<long long> inputBiases(vocabSize);
-std::vector<long long> layer1Weights(100);
-std::vector<long long> layer1Biases(100);
+std::vector<long long> layer1Weights(vocabSize);
+std::vector<long long> layer1Biases(vocabSize);
 std::vector<long long> layer1Values;
 std::vector<long long> outputBiases;
 std::vector<long long> outputValues;
-*/
 
 std::vector<int> tokenizedText; // Store prompt tokens as indicies
 void initializeWeights(std::vector<long long>& weights, long long minValue, long long maxValue) {
@@ -157,6 +156,12 @@ int segmentPrompt(const std::string& textContent)
     }
     std::cout << "Segmenting completed." << std::endl;
     return countUnknown;
+}
+
+int runANN()
+{
+    
+    return 0;
 }
 
 int runPrompt()
