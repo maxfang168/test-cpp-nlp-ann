@@ -109,7 +109,20 @@
     "typeinfo": "cpp",
     "variant": "cpp",
     "sstream": "cpp",
-    "unordered_set": "cpp"
+    "unordered_set": "cpp",
+    "chrono": "cpp",
+    "codecvt": "cpp",
+    "condition_variable": "cpp",
+    "cstdarg": "cpp",
+    "map": "cpp",
+    "set": "cpp",
+    "ratio": "cpp",
+    "future": "cpp",
+    "iomanip": "cpp",
+    "mutex": "cpp",
+    "semaphore": "cpp",
+    "stop_token": "cpp",
+    "thread": "cpp"
   },
   "files.autoSave": "afterDelay"
 }

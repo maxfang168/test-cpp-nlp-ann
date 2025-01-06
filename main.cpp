@@ -8,6 +8,7 @@
 #include <chrono>
 #include <thread>
 #include <algorithm>
+#include <functional>
 std::vector<std::string> tokens;
 std::string fileContent;
 std::string processedFileContent;
@@ -16,6 +17,7 @@ std::string trainingFilePath = "C:\\Users\\RLS\\Documents\\GitHub\\test-cpp-nlp-
 std::string prompt;
 std::vector<std::string> promptTokens;
 int vocabSize;
+int contextSize = 1;
 std::vector<long long> inputWeights(vocabSize);
 std::vector<long long> inputBiases(vocabSize);
 std::vector<long long> inputValues(vocabSize);
@@ -25,16 +27,12 @@ std::vector<long long> layer1Values;
 std::vector<long long> outputBiases;
 std::vector<long long> outputValues;
 std::vector<int> tokenizedText; // Store prompt tokens as indicies
-void initializeWeights(std::vector<long long> &weights, long long minValue, long long maxValue)
+long long randomNumber(long long minValue, long long maxValue)
 {
     std::random_device rd;                                            // Seed for randomness
     std::mt19937 gen(rd());                                           // Random number generator
     std::uniform_int_distribution<long long> dis(minValue, maxValue); // Integer distribution in range [minValue, maxValue]
-
-    for (long long &weight : weights)
-    {
-        weight = dis(gen); // Assign random integer value to each weight
-    }
+    return dis(gen);
 }
 
 int toLowercase(std::string &text)
@@ -132,18 +130,44 @@ int segmentPrompt(const std::string &textContent)
     return countUnknown;
 }
 
-int runANN(int contextIndex1)
+int runANN(int contextTokenIndex1)
 {
     std::cout << "Running ANN" << std::endl;
     layer1Values.clear();
     outputValues.clear();
-
+    layer1Values.resize(vocabSize);
+    outputValues.resize(vocabSize);
+    inputValues.resize(vocabSize);
+    inputValues[contextTokenIndex1] = 1;
+    for (size_t i = 0; i < vocabSize; ++i)
+    {
+        layer1Values[i] = inputValues[i] * inputWeights[i] + inputBiases[i];
+        for (size_t j = 0; j < vocabSize-1; ++j)
+        {
+        layer1Values[i+j] = inputValues[i+j] * inputWeights[i+j] + inputBiases[i+j];
+        }
+    }
+    for (size_t i = 0; i < vocabSize; ++i)
+    {
+        outputValues[i] = layer1Values[i] * layer1Weights[i] + layer1Biases[i];
+        for (size_t j = 0; j < vocabSize-1; ++j)
+        {
+        outputValues[i+j] = layer1Values[i+j] * layer1Weights[i+j] + layer1Biases[i+j];
+        }
+    }
+    for (size_t i = 0; i < outputValues.size(); ++i)
+    {
+        std::cout << "Output neuron index: " << std::to_string(i) << " | " << outputValues[i] << std::endl;
+    }
     return 0;
 }
 
 
 int runPrompt()
 {
+    promptTokens.clear();
+    prompt = "";
+    promptTokens.clear();
     std::cout << "Please enter the prompt text: ";
     std::getline(std::cin, prompt);
     std::cout << "Preprocessing prompt text" << std::endl;
@@ -202,6 +226,13 @@ int runPrompt()
     {
         std::cout << "Prompt to tokens Index: " << std::to_string(j) << " | " << tokenizedText[j] << std::endl;
     }
+    std::vector<long long> sortedOutputValues = outputValues;
+    std::sort(sortedOutputValues.begin(), sortedOutputValues.end());
+    std::cout << "Sorted output values:" << std::endl;
+    for (size_t i = 0; i < sortedOutputValues.size(); ++i)
+    {
+        std::cout << "Sorted Output Value Index: " << std::to_string(i) << " | " << sortedOutputValues[i] << std::endl;
+    }
     return 0;
 }
 
@@ -240,7 +271,21 @@ int main()
     std::cout << "Tokenizing completed." << std::endl;
     while (true)
     {
+        for (size_t i = 0; i < vocabSize; ++i)
+    {
+        inputValues[i] = randomNumber(-1, 1);
+        std::cout << "Input Value: " << std::to_string(i) << " | " << std::to_string(inputValues[i]) << std::endl;
+        layer1Values[i] = randomNumber(-1, 1);
+        std::cout << "Layer 1 Value: " << std::to_string(i) << " | " << std::to_string(layer1Values[i]) << std::endl;
+        outputValues[i] = randomNumber(-1, 1);
+        std::cout << "Output Value: " << std::to_string(i) << " | " << std::to_string(outputValues[i]) << std::endl;
+    }
         runPrompt();
+        runANN(tokenizedText[0]);
+        std::cout << std::endl << "Done running ANN." << std::endl;
+        clearPromptTokens();
+        tokenizedText.clear();
+        tokenizedText.shrink_to_fit();
     }
     return 0;
 }
