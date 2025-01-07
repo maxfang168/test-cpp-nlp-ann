@@ -37,6 +37,14 @@ void clearVectors() {
     layer1Values.clear();
     outputBiases.clear();
     outputValues.clear();
+    inputValues.shrink_to_fit();
+    inputBiases.shrink_to_fit();
+    inputWeights.shrink_to_fit();
+    layer1Biases.shrink_to_fit();
+    layer1Values.shrink_to_fit();
+    layer1Weights.shrink_to_fit();
+    outputBiases.shrink_to_fit();
+    outputValues.shrink_to_fit();
 }
 std::vector<int> tokenizedText; // Store prompt tokens as indicies
 std::vector<int> phraseTokens;
@@ -76,6 +84,7 @@ bool isPunctuation(char character)
 void clearPromptTokens()
 {
     promptTokens.clear();
+    promptTokens.shrink_to_fit();
 }
 int preprocessText()
 {
@@ -235,6 +244,7 @@ std::string runSentence(int firstToken, int secondToken, int thirdToken, int wor
 int runPrompt()
 {
     promptTokens.clear();
+    promptTokens.shrink_to_fit();
     prompt = "";
     std::cout << "Please enter the prompt text: ";
     std::getline(std::cin, prompt);
