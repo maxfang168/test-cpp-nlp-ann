@@ -14,7 +14,7 @@ std::vector<std::string> tokens;
 std::string fileContent;
 std::string processedFileContent;
 const std::unordered_set<char> punctuation = {'.', ',', '!', '?', ';', ':', '(', ')', '-', '`', '\'', '\"', '[', ']', '{', '}', '<', '>', '/', '\\', '_', '@', '=', '+', '*', '%', '^', '~', '#', '$', '&', '\n', '\t'};
-std::string trainingFilePath = "trainingData.txt";
+std::string trainingFilePath = "simplified.txt";
 int vocabSize = 0;
 std::vector<long double> inputWeights;
 std::vector<long double> inputBiases;
@@ -96,9 +96,9 @@ void runANN(const std::vector<long double>& input) {
     if (input.size() != layerWeights[0].size()) {
         throw std::invalid_argument("Input size does not match ANN configuration.");
     }
-
     layerValues[0] = input;
     for (size_t layer = 1; layer < layerWeights.size(); ++layer) {
+        std::cout << "Running ANN layer " << layer << " of " << layerWeights.size() << std::endl;
         for (size_t i = 0; i < layerValues[layer].size(); ++i) {
             long double sum = layerBiases[layer][i];
             for (size_t j = 0; j < layerValues[layer - 1].size(); ++j) {
@@ -126,6 +126,7 @@ std::string runSentence(const std::string& prompt, int numTokens, int contextWin
     std::string generatedText = prompt;
 
     for (int i = 0; i < numTokens; ++i) {
+        std::cout << "Generating token " << i + 1 << " of " << numTokens << std::endl;
         runANN(context);
 
         size_t maxIndex = std::distance(outputValues.begin(), std::max_element(outputValues.begin(), outputValues.end()));
@@ -161,14 +162,14 @@ int main() {
 
         preprocessText();
         tokenizeText();
-        const int numLayers = 12;
-        const int contextWindow = 50;
+        const int numLayers = 1;
+        const int contextWindow = 2;
         initializeWeights(numLayers, contextWindow);
 
         std::cout << "Setup complete. Ready to run the ANN." << std::endl;
 
         std::string prompt = "Once upon a time";
-        std::string generatedText = runSentence(prompt, 20, contextWindow);
+        std::string generatedText = runSentence(prompt, 10, contextWindow);
         std::cout << "Generated text: " << generatedText << std::endl;
 
     } catch (const std::exception& e) {
