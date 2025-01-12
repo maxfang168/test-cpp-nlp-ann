@@ -19,14 +19,14 @@ std::string prompt;
 std::vector<std::string> promptTokens;
 int vocabSize = 0;
 int contextSize = 1;
-std::vector<long long> inputWeights;
-std::vector<long long> inputBiases;
-std::vector<long long> inputValues;
-std::vector<long long> layer1Weights;
-std::vector<long long> layer1Biases;
-std::vector<long long> layer1Values;
-std::vector<long long> outputBiases;
-std::vector<long long> outputValues;
+std::vector<long double> inputWeights;
+std::vector<long double> inputBiases;
+std::vector<long double> inputValues;
+std::vector<long double> layer1Weights;
+std::vector<long double> layer1Biases;
+std::vector<long double> layer1Values;
+std::vector<long double> outputBiases;
+std::vector<long double> outputValues;
 
 void clearVectors() {
     inputWeights.clear();
@@ -48,12 +48,12 @@ void clearVectors() {
 }
 std::vector<int> tokenizedText; // Store prompt tokens as indicies
 std::vector<int> phraseTokens;
-double randomNumber(double minValue, double maxValue)
+double randomNumber(long double minValue, long double maxValue)
 {
     std::random_device rd;                                                    // Seed for randomness
     std::mt19937 gen(rd());                                                   // Random number generator
-    std::uniform_real_distribution<double> dis(minValue * 10, maxValue * 10); // Real number distribution in range [minValue, maxValue]
-    double result = dis(gen);
+    std::uniform_real_distribution<long double> dis(minValue * 10, maxValue * 10); // Real number distribution in range [minValue, maxValue]
+    long double result = dis(gen);
     std::ostringstream oss;
     oss << std::fixed << std::setprecision(10) << result;
     result = std::stod(oss.str());
@@ -171,13 +171,7 @@ void removeDuplicates(std::vector<std::string> &tokens)
 }
 int runANN(int contextTokenIndex1, int contextTokenIndex2, int contextTokenIndex3)
 {
-    std::cout << "Running ANN" << std::endl;
-    layer1Values.clear();
-    outputValues.clear();
-    inputValues.clear();
-    layer1Values.resize(vocabSize * 3);
-    outputValues.resize(vocabSize * 3);
-    inputValues.resize(vocabSize * 3);
+    std::cout << std::endl << std::endl << "Running ANN" << std::endl;
 
     int initMarker = 1; // Marker dictates starting amount in one-hot encoding.
     inputValues[contextTokenIndex1] = initMarker;
@@ -186,13 +180,30 @@ int runANN(int contextTokenIndex1, int contextTokenIndex2, int contextTokenIndex
 
     std::cout << "Input values initialized" << std::endl;
 
-    // Combine input and layer1 calculations
-    for (size_t i = 0; i < vocabSize * 3; ++i)
+        // Combine input and layer1 calculations
+        try
     {
-        layer1Values[i] = inputValues[i] * inputWeights[i] + inputBiases[i];
+        std::cout << "Calculating layer 1 values" << std::endl;
+        std::cout << "vocabSize: " << vocabSize << std::endl;
+        std::cout << "inputValues size: " << inputValues.size() << std::endl;
+        std::cout << "inputWeights size: " << inputWeights.size() << std::endl;
+        std::cout << "inputBiases size: " << inputBiases.size() << std::endl;
+        std::cout << "layer1Values size: " << layer1Values.size() << std::endl;
+    
+        for (size_t i = 0; i < ((vocabSize) * 3); ++i) //causing error
+        {
+            layer1Values[i] = inputValues[i] * inputWeights[i] + inputBiases[i];
+        }
+        std::cout << "Layer 1 values calculated successfully" << std::endl;
     }
-
-    std::cout << "Layer 1 values calculated" << std::endl;
+    catch (const std::exception &e)
+    {
+        std::cerr << "Error during layer 1 calculations: " << e.what() << std::endl;
+    }
+    catch (...)
+    {
+        std::cerr << "Unknown error during layer 1 calculations" << std::endl;
+    }
 
     // Calculate output values
     for (size_t i = 0; i < vocabSize * 3; ++i)
@@ -203,22 +214,12 @@ int runANN(int contextTokenIndex1, int contextTokenIndex2, int contextTokenIndex
 
     std::cout << "Output values calculated" << std::endl;
 
-    // Apply softmax to outputValues
-    double sumExp = 0.0;
-    for (auto &val : outputValues)
-    {
-        val = std::exp(val);
-        sumExp += val;
-    }
-    for (auto &val : outputValues)
-    {
-        val /= sumExp;
-    }
+    // Sort outputValues and return the largest value
+    std::sort(outputValues.begin(), outputValues.end(), std::greater<long double>());
 
-    std::cout << "Softmax applied to output values" << std::endl;
+    std::cout << "Output values sorted" << std::endl;
 
-    auto maxElementIter = std::max_element(outputValues.begin(), outputValues.end());
-    int maxElementIndex = std::distance(outputValues.begin(), maxElementIter);
+    int maxElementIndex = 0; // Since the largest value is now at the beginning
     std::cout << "Max element index: " << maxElementIndex << std::endl;
     return maxElementIndex;
 }
@@ -229,9 +230,10 @@ std::string runSentence(int firstToken, int secondToken, int thirdToken, int wor
     int output = runANN(firstToken, secondToken, thirdToken);
     phraseTokens.push_back(output);
     std::cout << "Initial tokens: " << firstToken << ", " << secondToken << ", " << thirdToken << std::endl;
-    for (int i = 2; i < wordLimit; i++)
+    std::cout << "Output token 1: " << output << std::endl;
+    for (int i = 1; i < wordLimit; i++)
     {
-        output = runANN(phraseTokens[i - 2], phraseTokens[i - 1], phraseTokens[i]);
+        output = runANN(phraseTokens[i - 1], phraseTokens[i], phraseTokens[i-1]);
         phraseTokens.push_back(output);
         std::cout << "Generated token " << i << ": " << output << std::endl;
     }
@@ -292,7 +294,18 @@ int main()
 {
     std::cout << "Copyright maxfang168, 2024-2025. Prerelease version.";
 
-    std::cout << "Main funct init now." << std::endl;
+    std::cout << std::endl << "Main funct init now." << std::endl;
+    layer1Values.clear();
+    outputValues.clear();
+    inputValues.clear();
+    layer1Values.resize(vocabSize * 3);
+    outputValues.resize(vocabSize * 3);
+    inputValues.resize(vocabSize * 3);
+    inputWeights.resize(vocabSize * 3);
+    inputBiases.resize(vocabSize * 3);
+    layer1Weights.resize(vocabSize * 3);
+    layer1Biases.resize(vocabSize * 3);
+    outputBiases.resize(vocabSize * 3);
     std::ifstream file(trainingFilePath); // Open the file
     // initializeWeights();
     if (file.is_open())
@@ -321,18 +334,18 @@ int main()
     }
     */
     size_t numSegments = tokens.size();
-    std::cout << "Number of segments (No duplicates): " << numSegments << std::endl;
+    std::cout << "Number of segments (No duplicates are included): " << numSegments << std::endl;
     vocabSize = numSegments; // Set the vocabulary size
-    inputWeights.resize(vocabSize);
-    inputBiases.resize(vocabSize);
-    inputValues.resize(vocabSize);
-    layer1Weights.resize(vocabSize);
-    layer1Biases.resize(vocabSize);
-    layer1Values.resize(vocabSize);
-    outputBiases.resize(vocabSize);
-    outputValues.resize(vocabSize);
+    inputWeights.resize(vocabSize*3);
+    inputBiases.resize(vocabSize*3);
+    inputValues.resize(vocabSize*3);
+    layer1Weights.resize(vocabSize*3);
+    layer1Biases.resize(vocabSize*3);
+    layer1Values.resize(vocabSize*3);
+    outputBiases.resize(vocabSize*3);
+    outputValues.resize(vocabSize*3);
 
-    for (size_t i = 0; i < vocabSize; ++i)
+    for (size_t i = 0; i < vocabSize*3; ++i)
     {
         inputWeights[i] = randomNumber(-1, 1);
         inputBiases[i] = randomNumber(-1, 1);
